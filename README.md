@@ -15,14 +15,35 @@ Libraries:
 
 ## Usage
 
-In your `builder.conf`:
+Recommended: declare the repository in an external libraries catalog
+(e.g. `ext-libs.yml` in the test suite conf directory) and pass it to
+`dispatcher.sh --ext-libs=ext-libs.yml`:
+
+```yaml
+repositories:
+  - name: tsf_wifi
+    url: <repo URL>
+    ref: <tag>
+    libs:
+      - tapi_cfg_wifi
+      - ta_wifi
+```
+
+Then bind the libraries to platforms in `builder.conf`:
+
+```
+TE_EXT_REPO_USE([tsf_wifi], [], [tapi_cfg_wifi])
+TE_EXT_REPO_USE([tsf_wifi], [<agent platform>], [])
+TE_TA_TYPE([<ta type>], [<agent platform>], [unix],
+           [...], [], [], [], [... tapi_cfg_wifi ta_wifi])
+```
+
+Alternatively, without a catalog, declare everything in `builder.conf`:
 
 ```
 TE_EXT_REPO([tsf_wifi], [], [<repo URL>], [<tag>], [tapi_cfg_wifi])
 TE_EXT_REPO([tsf_wifi], [<agent platform>], [<repo URL>], [<tag>],
             [tapi_cfg_wifi ta_wifi])
-TE_TA_TYPE([<ta type>], [<agent platform>], [unix],
-           [...], [], [], [], [... tapi_cfg_wifi ta_wifi])
 ```
 
 Requires TE with `TE_EXT_REPO` support (the `te_vec_tokenize_string`

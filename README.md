@@ -46,5 +46,4 @@ TE_EXT_REPO([tsf_wifi], [<agent platform>], [<repo URL>], [<tag>],
             [tapi_cfg_wifi ta_wifi])
 ```
 
-Requires TE with `TE_EXT_REPO` support (the `te_vec_tokenize_string`
-helper from lib/tools is also needed by the UCI parser).
+Requires TE with `TE_EXT_REPO` support.

@@ -10,6 +10,8 @@
 
 #include "te_config.h"
 
+#include <assert.h>
+
 #include "te_alloc.h"
 #include "te_str.h"
 #include "te_string.h"
@@ -88,6 +90,49 @@ should_ignore(ta_wifi_tmpl_type type, const char *opt)
  * Process three tokens of the UCI configuration and fill the
  * template data
  */
+/**
+ * Split @p str into chunks separated by any of @p sep_symbols and
+ * append copies of them to @p strvec.
+ *
+ * Adjacent separators are collapsed, so a line made of separators
+ * alone yields no chunks at all. That is the shell-like word split a
+ * UCI line needs, and it is not what te_vec_split_string() does: that
+ * one takes a single separator and keeps the empty chunk between two
+ * of them.
+ *
+ * @param[in]     str          Line to split, may be @c NULL.
+ * @param[in,out] strvec       Vector of @c char* the chunks are
+ *                             appended to; its previous content is
+ *                             kept.
+ * @param[in]     sep_symbols  Characters that separate the chunks.
+ */
+static void
+tokenize_string(const char *str, te_vec *strvec, const char *sep_symbols)
+{
+    char *copy;
+    char *part;
+    char *state = NULL;
+
+    assert(strvec != NULL);
+    assert(strvec->element_size == sizeof(char *));
+    assert(sep_symbols != NULL);
+
+    te_vec_set_destroy_fn_safe(strvec, te_vec_item_free_ptr);
+
+    if (str == NULL || *str == '\0')
+        return;
+
+    copy = TE_STRDUP(str);
+    for (part = strtok_r(copy, sep_symbols, &state); part != NULL;
+         part = strtok_r(NULL, sep_symbols, &state))
+    {
+        char *chunk = TE_STRDUP(part);
+
+        TE_VEC_APPEND(strvec, chunk);
+    }
+    free(copy);
+}
+
 static te_errno
 ta_wifi_process_tokens(ta_wifi_tmpl_parse_context *ctx,
                        ta_wifi_tmpl_data *data,
@@ -198,8 +243,7 @@ ta_wifi_uci_parser_parse(const char *path, ta_wifi_tmpl_data *data)
 
         line[sizeof(line) - 1] = '\0';
 
-        if (te_vec_tokenize_string(line, &linevec, " \t\r\n'") != 0)
-            continue;
+        tokenize_string(line, &linevec, " \t\r\n'");
 
         if (te_vec_size(&linevec) == 3)
         {

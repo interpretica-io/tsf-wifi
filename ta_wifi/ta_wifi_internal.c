@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-License-Identifier: MIT */
 /* Copyright (C) 2025 Interpretica, Unipessoal Lda. All rights reserved. */
 /** @file
  * @brief WiFi agent library
